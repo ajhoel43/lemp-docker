@@ -1,0 +1,49 @@
+version: '3.7'
+
+# Services
+services: 
+
+  nginx:
+    image: nginx:1.18-alpine
+    ports: 
+      - 8010:80
+    volumes:
+      - ~/Project/web:/var/www/php:ro
+      - ./.docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - phpmyadmindata:/var/www/phpmyadmin:ro
+    depends_on:
+      - php
+      - phpmyadmin
+
+  php:
+    build: ./.docker/php
+    working_dir: /var/www/php
+    volumes:
+      - ~/Project/web:/var/www/php
+    depends_on:
+      - db
+  
+  db:
+    image: mariadb:10.5
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - ./.docker/mariadb/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - mysqldata:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5
+    ports:
+      - 8011:80
+    environment:
+      PMA_HOST: db
+    volumes:
+      - phpmyadmindata:/var/www/html
+    depends_on:
+      - db
+
+volumes:
+
+  mysqldata:
+
+  phpmyadmindata:
